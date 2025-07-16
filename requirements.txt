@@ -3,3 +3,10 @@ autopep8
 Flask==3.0.3
 gunicorn==22.0.0
 Werkzeug==3.0.6
+Flask-SQLAlchemy
+Pillow
+tensorflow
+PyJWT
+python-dotenv
+passlib[bcrypt]
+flask-swagger-ui

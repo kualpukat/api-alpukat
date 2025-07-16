@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Klasifikasi Alpukat</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Panel Admin Klasifikasi Alpukat</h1>
+
+        <div id="login-section">
+            <h2>Login Admin</h2>
+            <input type="text" id="login-username" placeholder="Username Admin">
+            <input type="password" id="login-password" placeholder="Password Admin">
+            <button id="login-button">Login</button>
+            <p id="login-message" class="message"></p>
+        </div>
+
+        <div id="admin-content" style="display:none;">
+            <button id="logout-button">Logout</button>
+            <p>Selamat datang, Admin! <span id="admin-username-display"></span></p>
+
+            <hr>
+
+            <h2>Manajemen Detail Alpukat</h2>
+            <form id="avocado-form">
+                <input type="hidden" id="avocado-id">
+                <input type="text" id="fruit-type" placeholder="Jenis Alpukat" required>
+                <textarea id="description" placeholder="Deskripsi" required></textarea>
+                <input type="url" id="image-url" placeholder="URL Gambar (opsional)">
+                <button type="submit" id="save-avocado-button">Tambah Detail</button>
+                <button type="button" id="cancel-edit-button" style="display:none;">Batal Edit</button>
+                <p id="avocado-message" class="message"></p>
+            </form>
+
+            <h3>Daftar Detail Alpukat</h3>
+            <table id="avocado-details-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Jenis Alpukat</th>
+                        <th>Deskripsi</th>
+                        <th>URL Gambar</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be loaded here by JavaScript -->
+                </tbody>
+            </table>
+
+            <hr>
+
+            <h2>Riwayat Klasifikasi Gambar</h2>
+            <table id="classification-history-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Path Gambar</th>
+                        <th>Hasil Klasifikasi</th>
+                        <th>Waktu</th>
+                        <th>Status Proses</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be loaded here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/static/js/admin_script.js"></script>
+</body>
+</html>

@@ -1,0 +1,676 @@
+
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Klasifikasi Alpukat",
+    "description": "Dokumentasi untuk API Klasifikasi Alpukat yang dibangun menggunakan Flask. API ini memungkinkan pengguna untuk mengunggah gambar alpukat, mendapatkan klasifikasi jenisnya, serta menyediakan fungsionalitas manajemen untuk admin.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5000",
+      "description": "Server Pengembangan Lokal"
+    },
+    {
+      "url": "https://yourdomain.com/api",
+      "description": "Server Produksi (sesuaikan dengan domain Anda)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Autentikasi",
+      "description": "Operasi terkait pendaftaran dan login pengguna."
+    },
+    {
+      "name": "Klasifikasi Gambar",
+      "description": "Operasi untuk mengunggah dan mengklasifikasikan gambar alpukat."
+    },
+    {
+      "name": "Manajemen Admin",
+      "description": "Operasi CRUD yang hanya dapat diakses oleh admin untuk mengelola detail jenis alpukat dan melihat riwayat klasifikasi."
+    },
+    {
+      "name": "Informasi Publik",
+      "description": "Operasi yang dapat diakses publik untuk melihat detail jenis alpukat."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT (JSON Web Token) yang diperoleh setelah login."
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "username": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "admin"] }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string", "description": "Nama pengguna unik." },
+          "password": { "type": "string", "description": "Kata sandi pengguna." },
+          "role": { "type": "string", "enum": ["user", "admin"], "default": "user", "description": "Peran pengguna (user atau admin)." }
+        },
+        "example": {
+          "username": "contoh_pengguna",
+          "password": "kata_sandi_rahasia",
+          "role": "user"
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string", "description": "Nama pengguna." },
+          "password": { "type": "string", "description": "Kata sandi." }
+        },
+        "example": {
+          "username": "admin",
+          "password": "adminpass"
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "description": "Token JWT untuk autentikasi API." }
+        },
+        "example": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzA3MjgwMzY3fQ.signature_here"
+        }
+      },
+      "Classification": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "image_path": { "type": "string", "description": "Path relatif gambar yang diunggah di server." },
+          "classification_result": { "type": "string", "description": "Hasil klasifikasi jenis alpukat." },
+          "timestamp": { "type": "string", "format": "date-time", "description": "Waktu klasifikasi dilakukan." },
+          "processed": { "type": "boolean", "description": "Status apakah gambar sudah diproses." }
+        }
+      },
+      "AvocadoFruitDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "fruit_type": { "type": "string", "description": "Jenis buah alpukat." },
+          "description": { "type": "string", "description": "Deskripsi mengenai jenis buah alpukat." },
+          "image_url": { "type": "string", "description": "URL gambar terkait jenis alpukat." },
+          "timestamp": { "type": "string", "format": "date-time", "description": "Waktu penambahan/modifikasi data." }
+        }
+      },
+      "CreateAvocadoDetailRequest": {
+        "type": "object",
+        "required": ["fruit_type", "description"],
+        "properties": {
+          "fruit_type": { "type": "string", "description": "Jenis buah alpukat baru." },
+          "description": { "type": "string", "description": "Deskripsi untuk jenis alpukat baru." },
+          "image_url": { "type": "string", "description": "URL gambar terkait (opsional)." }
+        },
+        "example": {
+          "fruit_type": "Alpukat Hass",
+          "description": "Alpukat Hass memiliki kulit hitam bergelombang saat matang.",
+          "image_url": "http://example.com/hass.jpg"
+        }
+      },
+      "UpdateAvocadoDetailRequest": {
+        "type": "object",
+        "properties": {
+          "fruit_type": { "type": "string", "description": "Jenis buah alpukat (opsional, untuk diubah)." },
+          "description": { "type": "string", "description": "Deskripsi (opsional, untuk diubah)." },
+          "image_url": { "type": "string", "description": "URL gambar terkait (opsional, untuk diubah)." }
+        },
+        "example": {
+          "description": "Alpukat Hass yang sangat lezat dengan daging krem."
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "error": { "type": "string" }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Informasi Publik"],
+        "summary": "Status API",
+        "description": "Mengembalikan pesan selamat datang dari API.",
+        "responses": {
+          "200": {
+            "description": "Pesan selamat datang.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" }
+                  }
+                },
+                "example": {
+                  "message": "Welcome to the Avocado Classification API!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "tags": ["Autentikasi"],
+        "summary": "Daftar Pengguna Baru",
+        "description": "Mendaftarkan pengguna baru dengan nama pengguna dan kata sandi. Secara opsional dapat menentukan peran (user/admin).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pengguna berhasil didaftarkan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": { "message": "User registered successfully!" }
+              }
+            }
+          },
+          "400": {
+            "description": "Nama pengguna atau kata sandi tidak diberikan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "message": "Username and password are required!" }
+              }
+            }
+          },
+          "409": {
+            "description": "Nama pengguna sudah ada.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "message": "Username already exists." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": ["Autentikasi"],
+        "summary": "Login Pengguna",
+        "description": "Mengautentikasi pengguna dan mengembalikan token JWT untuk akses API selanjutnya.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login berhasil, token JWT dikembalikan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Kredensial tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "message": "Invalid credentials!" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/classify": {
+      "post": {
+        "tags": ["Klasifikasi Gambar"],
+        "summary": "Klasifikasi Gambar Alpukat",
+        "description": "Mengunggah gambar alpukat dan mengklasifikasikan jenisnya menggunakan model yang dimuat. Membutuhkan token autentikasi.",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File gambar alpukat (JPG, JPEG, PNG, maks 5MB)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gambar berhasil diunggah dan diklasifikasikan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "filename": { "type": "string" },
+                    "classification_result": { "type": "string" }
+                  }
+                },
+                "example": {
+                  "message": "Image uploaded and classified",
+                  "filename": "alpukat_1.jpg",
+                  "classification_result": "Alpukat Mentega"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Kesalahan validasi gambar (mis. tidak ada file, jenis file tidak didukung, ukuran file terlalu besar).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "Invalid file type. Only PNG, JPG, JPEG are allowed." }
+              }
+            }
+          },
+          "401": {
+            "description": "Token tidak ada atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "message": "Token is missing!" }
+              }
+            }
+          },
+          "500": {
+            "description": "Kesalahan server internal, misalnya model klasifikasi tidak dimuat atau kegagalan pemrosesan gambar.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "Classification model is not loaded." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/avocado-details": {
+      "post": {
+        "tags": ["Manajemen Admin"],
+        "summary": "Buat Detail Alpukat Baru",
+        "description": "Membuat entri baru untuk detail jenis alpukat. Hanya dapat diakses oleh admin.",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateAvocadoDetailRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Detail alpukat berhasil dibuat.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": { "message": "Avocado detail created successfully!", "id": 1 }
+              }
+            }
+          },
+          "400": {
+            "description": "Jenis buah atau deskripsi tidak diberikan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "message": "Fruit type and description are required!" }
+              }
+            }
+          },
+          "401": {
+            "description": "Token tidak ada atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "message": "Token is invalid or expired! " }
+              }
+            }
+          },
+          "403": {
+            "description": "Akses admin diperlukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "message": "Admin access required!" }
+              }
+            }
+          },
+          "409": {
+            "description": "Jenis alpukat sudah ada.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "message": "Avocado type already exists." }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Manajemen Admin"],
+        "summary": "Dapatkan Semua Detail Alpukat",
+        "description": "Mengambil semua detail jenis alpukat dari database. Hanya dapat diakses oleh admin.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Daftar detail alpukat berhasil diambil.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "avocado_details": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/AvocadoFruitDetail" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token tidak ada atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Akses admin diperlukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/avocado-details/{detail_id}": {
+      "get": {
+        "tags": ["Manajemen Admin"],
+        "summary": "Dapatkan Detail Alpukat Berdasarkan ID",
+        "description": "Mengambil detail jenis alpukat tertentu berdasarkan ID-nya. Hanya dapat diakses oleh admin.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "detail_id",
+            "in": "path",
+            "required": true,
+            "description": "ID detail alpukat.",
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail alpukat berhasil diambil.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AvocadoFruitDetail" }
+              }
+            }
+          },
+          "401": {
+            "description": "Token tidak ada atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Akses admin diperlukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Detail alpukat tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Manajemen Admin"],
+        "summary": "Perbarui Detail Alpukat",
+        "description": "Memperbarui detail jenis alpukat yang ada berdasarkan ID. Hanya dapat diakses oleh admin.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "detail_id",
+            "in": "path",
+            "required": true,
+            "description": "ID detail alpukat yang akan diperbarui.",
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateAvocadoDetailRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Detail alpukat berhasil diperbarui.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": { "message": "Avocado detail updated successfully!" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request (mis. data input tidak valid).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Token tidak ada atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Akses admin diperlukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Detail alpukat tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Manajemen Admin"],
+        "summary": "Hapus Detail Alpukat",
+        "description": "Menghapus detail jenis alpukat berdasarkan ID. Hanya dapat diakses oleh admin.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "detail_id",
+            "in": "path",
+            "required": true,
+            "description": "ID detail alpukat yang akan dihapus.",
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail alpukat berhasil dihapus.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": { "message": "Avocado detail deleted successfully!" }
+              }
+            }
+          },
+          "401": {
+            "description": "Token tidak ada atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Akses admin diperlukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Detail alpukat tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/classifications": {
+      "get": {
+        "tags": ["Manajemen Admin"],
+        "summary": "Dapatkan Semua Klasifikasi",
+        "description": "Mengambil riwayat semua klasifikasi gambar yang telah dilakukan. Hanya dapat diakses oleh admin.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Daftar klasifikasi berhasil diambil.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "classifications": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Classification" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token tidak ada atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Akses admin diperlukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/avocado-details/{fruit_type}": {
+      "get": {
+        "tags": ["Informasi Publik"],
+        "summary": "Dapatkan Detail Alpukat Berdasarkan Jenis",
+        "description": "Mengambil detail jenis alpukat tertentu berdasarkan nama jenisnya. Dapat diakses publik.",
+        "parameters": [
+          {
+            "name": "fruit_type",
+            "in": "path",
+            "required": true,
+            "description": "Jenis buah alpukat (e.g., "Alpukat Mentega").",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail alpukat berhasil diambil.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AvocadoFruitDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Jenis alpukat tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "message": "Avocado type not found." }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
