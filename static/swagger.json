@@ -647,7 +647,7 @@
             "name": "fruit_type",
             "in": "path",
             "required": true,
-            "description": "Jenis buah alpukat (e.g., "Alpukat Mentega").",
+            "description": "Jenis buah alpukat (e.g. Alpukat Mentega).",
             "schema": { "type": "string" }
           }
         ],
