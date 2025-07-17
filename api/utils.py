@@ -21,15 +21,35 @@ def get_current_app_config(key):
 # --- Load TensorFlow Lite model and labels ---
 def load_model_and_labels():
     global interpreter, input_details, output_details, labels, model_input_shape
-    MODEL_PATH = os.path.join(current_app.root_path, 'model.tflite')
-    LABELS_PATH = os.path.join(current_app.root_path, 'labels.txt')
+    
+    # Use paths from config
+    MODEL_PATH = current_app.config.get('MODEL_PATH')
+    LABELS_PATH = current_app.config.get('LABELS_PATH')
+    
+    # Fallback to old method if config paths not available
+    if not MODEL_PATH:
+        MODEL_PATH = os.path.join(current_app.root_path, 'model.tflite')
+    if not LABELS_PATH:
+        LABELS_PATH = os.path.join(current_app.root_path, 'labels.txt')
 
     try:
         if not os.path.exists(MODEL_PATH):
+            current_app.logger.warning(f"Model file not found at {MODEL_PATH}")
             print(f"Warning: Model file not found at {MODEL_PATH}")
             return
         if not os.path.exists(LABELS_PATH):
+            current_app.logger.warning(f"Labels file not found at {LABELS_PATH}")
             print(f"Warning: Labels file not found at {LABELS_PATH}")
+            return
+
+        # Check file permissions
+        if not os.access(MODEL_PATH, os.R_OK):
+            current_app.logger.error(f"Model file is not readable: {MODEL_PATH}")
+            print(f"Error: Model file is not readable: {MODEL_PATH}")
+            return
+        if not os.access(LABELS_PATH, os.R_OK):
+            current_app.logger.error(f"Labels file is not readable: {LABELS_PATH}")
+            print(f"Error: Labels file is not readable: {LABELS_PATH}")
             return
 
         interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
@@ -41,10 +61,14 @@ def load_model_and_labels():
         # Get input tensor shape
         model_input_shape = input_details[0]['shape'][1:4] # (height, width, channels)
 
-        with open(LABELS_PATH, 'r') as f:
-            labels = [line.strip() for line in f.readlines()]
+        with open(LABELS_PATH, 'r', encoding='utf-8') as f:
+            labels = [line.strip() for line in f.readlines() if line.strip()]
+        
+        current_app.logger.info("TensorFlow Lite model and labels loaded successfully.")
         print("TensorFlow Lite model and labels loaded successfully.")
+        
     except Exception as e:
+        current_app.logger.error(f"Error loading model or labels: {e}")
         print(f"Error loading model or labels: {e}")
         interpreter = None # Ensure interpreter is None if loading fails
 

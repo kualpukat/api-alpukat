@@ -1,12 +1,30 @@
-pip
-autopep8
+# Core Flask dependencies
 Flask==3.0.3
-gunicorn==22.0.0
 Werkzeug==3.0.6
-Flask-SQLAlchemy
-Pillow
-tensorflow
-PyJWT
-python-dotenv
-passlib[bcrypt]
-flask-swagger-ui
+Flask-SQLAlchemy==3.1.1
+
+# Database
+pymysql==1.1.0
+
+# Authentication & Security
+PyJWT==2.8.0
+passlib[bcrypt]==1.7.4
+
+# Environment & Configuration
+python-dotenv==1.0.0
+
+# Image Processing
+Pillow==10.1.0
+
+# Machine Learning (optimized for shared hosting)
+tensorflow-lite==2.14.0
+# Alternative: tensorflow==2.14.0 (use full tensorflow if tensorflow-lite doesn't work)
+
+# API Documentation
+flask-swagger-ui==4.11.1
+
+# Development tools (optional for production)
+autopep8==2.0.4
+
+# WSGI Server (for local testing, not needed on cPanel)
+gunicorn==21.2.0

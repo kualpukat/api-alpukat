@@ -173,7 +173,7 @@ def classify_image(current_user):
 
     if image:
         filename = secure_filename(image.filename)
-        upload_folder = os.path.join(current_app.root_path, 'uploads')
+        upload_folder = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
         os.makedirs(upload_folder, exist_ok=True)
         image_path = os.path.join(upload_folder, filename)
         image.save(image_path)

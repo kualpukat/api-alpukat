@@ -1,75 +1,157 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Klasifikasi Alpukat</title>
+    <title>Admin Panel - Avocado Classification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Panel Admin Klasifikasi Alpukat</h1>
-
-        <div id="login-section">
-            <h2>Login Admin</h2>
-            <input type="text" id="login-username" placeholder="Username Admin">
-            <input type="password" id="login-password" placeholder="Password Admin">
-            <button id="login-button">Login</button>
-            <p id="login-message" class="message"></p>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">Admin Panel</h1>
+            <p class="header-subtitle">Avocado Classification Management System</p>
         </div>
+    </header>
 
-        <div id="admin-content" style="display:none;">
-            <button id="logout-button">Logout</button>
-            <p>Selamat datang, Admin! <span id="admin-username-display"></span></p>
-
-            <hr>
-
-            <h2>Manajemen Detail Alpukat</h2>
-            <form id="avocado-form">
-                <input type="hidden" id="avocado-id">
-                <input type="text" id="fruit-type" placeholder="Jenis Alpukat" required>
-                <textarea id="description" placeholder="Deskripsi" required></textarea>
-                <input type="url" id="image-url" placeholder="URL Gambar (opsional)">
-                <button type="submit" id="save-avocado-button">Tambah Detail</button>
-                <button type="button" id="cancel-edit-button" style="display:none;">Batal Edit</button>
-                <p id="avocado-message" class="message"></p>
-            </form>
-
-            <h3>Daftar Detail Alpukat</h3>
-            <table id="avocado-details-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Jenis Alpukat</th>
-                        <th>Deskripsi</th>
-                        <th>URL Gambar</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be loaded here by JavaScript -->
-                </tbody>
-            </table>
-
-            <hr>
-
-            <h2>Riwayat Klasifikasi Gambar</h2>
-            <table id="classification-history-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Path Gambar</th>
-                        <th>Hasil Klasifikasi</th>
-                        <th>Waktu</th>
-                        <th>Status Proses</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be loaded here by JavaScript -->
-                </tbody>
-            </table>
+    <nav class="navigation" id="main-nav" style="display:none;">
+        <div class="nav-content">
+            <a href="#dashboard" class="nav-link active" data-section="dashboard">Dashboard</a>
+            <a href="#avocado-management" class="nav-link" data-section="avocado-management">Manage Avocado Details</a>
+            <a href="#classifications" class="nav-link" data-section="classifications">View Classifications</a>
+            <button id="logout-button" class="logout-btn">Logout</button>
         </div>
-    </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Login Section -->
+        <section id="login-section" class="login-section">
+            <div class="login-card">
+                <h2 class="login-title">Admin Login</h2>
+                <form class="login-form">
+                    <div class="form-group">
+                        <label for="login-username" class="form-label">Username</label>
+                        <input type="text" id="login-username" class="form-input" placeholder="Enter admin username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password" class="form-label">Password</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="Enter admin password" required>
+                    </div>
+                    <button type="button" id="login-button" class="btn btn-primary">Login</button>
+                    <p id="login-message" class="message"></p>
+                </form>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" class="content-section" style="display:none;">
+            <div class="dashboard-header">
+                <h2 class="section-title">Welcome, Admin!</h2>
+                <p class="section-subtitle">Manage your avocado classification system from this control center.</p>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3 class="card-title">Avocado Details</h3>
+                    <p class="card-description">Manage different types of avocados and their descriptions</p>
+                    <button class="btn btn-secondary" data-section="avocado-management">Manage Details</button>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3 class="card-title">Classifications</h3>
+                    <p class="card-description">View and monitor image classification results</p>
+                    <button class="btn btn-secondary" data-section="classifications">View Classifications</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Avocado Management Section -->
+        <section id="avocado-management-section" class="content-section" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title">Avocado Details Management</h2>
+                <p class="section-subtitle">Add, edit, and manage avocado type information</p>
+            </div>
+
+            <div class="form-card">
+                <h3 class="form-title">Add New Avocado Detail</h3>
+                <form id="avocado-form" class="avocado-form">
+                    <input type="hidden" id="avocado-id">
+                    
+                    <div class="form-group">
+                        <label for="fruit-type" class="form-label">Avocado Type</label>
+                        <input type="text" id="fruit-type" class="form-input" placeholder="e.g., Hass, Fuerte, Bacon" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" class="form-textarea" placeholder="Detailed description of the avocado type..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="image-url" class="form-label">Image URL (Optional)</label>
+                        <input type="url" id="image-url" class="form-input" placeholder="https://example.com/image.jpg">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" id="save-avocado-button" class="btn btn-primary">Add Detail</button>
+                        <button type="button" id="cancel-edit-button" class="btn btn-secondary" style="display:none;">Cancel Edit</button>
+                    </div>
+                    
+                    <p id="avocado-message" class="message"></p>
+                </form>
+            </div>
+
+            <div class="table-card">
+                <h3 class="table-title">Avocado Details List</h3>
+                <div class="table-container">
+                    <table id="avocado-details-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Image URL</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Classifications Section -->
+        <section id="classifications-section" class="content-section" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title">Classification History</h2>
+                <p class="section-subtitle">Monitor and review image classification results</p>
+            </div>
+
+            <div class="table-card">
+                <div class="table-container">
+                    <table id="classification-history-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image Path</th>
+                                <th>Classification Result</th>
+                                <th>Timestamp</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script src="/static/js/admin_script.js"></script>
 </body>
